@@ -1,5 +1,5 @@
 from django.urls import path
-from . views import UserView
+from .views import UserView, UserUpdate
 
 app_name = "user"
 
@@ -11,6 +11,6 @@ urlpatterns = [
     #path('',UserView.as_view(), kwargs={'pk': None}),
     #path('^user/(?P<username>\w+)$', UserView.as_view()),
     path('hello/<str:user_name>/', UserView.as_view()),
-    path('hello/<str:user_name>/', UserView.as_view()),
+    path('hello/<str:user_name>/', UserUpdate.as_view()),
 ]
 

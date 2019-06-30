@@ -60,3 +60,23 @@ class UserUpdate(UpdateAPIView):
     serializer_class = serializers.UserSerializer
     lookup_field = 'user_name'
 
+    # def update(self, instance, validated_data):
+    #     instance.user_name = validated_data.get('user_name', instance.user_name)
+    #     print("hrllo")
+    #     instance.dateOfBirth = validated_data.get('dateOfBirth', instance.dateOfBirth)
+    #     print(validated_data.get('dateOfBirth'))
+    #     instance.save()
+    #     # return instance
+    #     serializer = self.get_serializer(instance)
+    #     serializer.is_valid(raise_exception=True)
+    #     self.perform_update(serializer)
+    #     return Response(serializer.data)
+    def update(self, request, *args, **kwargs):
+        serializer_data = request.data
+        serializer = self.serializer_class(request.user, data=serializer_data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
