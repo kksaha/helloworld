@@ -1,82 +1,60 @@
-# from django.shortcuts import render
-# from rest_framework.generics import get_object_or_404
-# from rest_framework.response import Response
-# from rest_framework.views import APIView
-# from . models import User
-# from . serializers import UserSerializer
-
+from datetime import date
+from datetime import datetime
 from rest_framework import generics
-from rest_framework.generics import (UpdateAPIView)
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
 
-from . import models
-from . import serializers
+from django.http import HttpResponse
 
-
-# class UserView(APIView):
-#     """
-#     def get(self, request):
-#         user = User.objects.all()
-#         serializer = UserSerializer(user, many=True)
-#         return Response({"user": serializer.data})
-#     """
-#
-#     def get(self, request, username=None):
-#         if username:
-#             user = get_object_or_404(User.objects.all(), user_name=username)
-#             serializer = UserSerializer(user)
-#             return Response({"user": serializer.data})
-#         users = User.objects.all()
-#         serializer = UserSerializer(users, many=True)
-#         return Response({"users": serializer.data})
-#
-#     # def post(self, request):
-#     #     user = request.data.get('user')
-#     #
-#     #     # Create an article from the above data
-#     #     serializer = UserSerializer(data=user)
-#     #     if serializer.is_valid(raise_exception=True):
-#     #         user_saved = serializer.save()
-#     #     return Response({"success": "User '{}' created successfully".format(user_saved.user_name)})
-#
-#     def put(self, request, user_name):
-#         #saved_user = get_object_or_404(User.objects.all(), pk=pk)
-#         saved_user = get_object_or_404(User.objects.all(), user_name=user_name)
-#         data = request.data.get('user')
-#         serializer = UserSerializer(instance=saved_user, data=data, partial=True)
-#
-#         if serializer.is_valid(raise_exception=True):
-#             user_saved = serializer.save()
-#         return Response({"success": "User '{}' updated successfully".format(user_saved.user_name)})
+from . models import UserDetail
+from . serializers import UserSerializer
 
 
-class UserView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = models.User.objects.all()
-    serializer_class = serializers.UserSerializer
+class UserView(generics.RetrieveUpdateAPIView):
+    queryset = UserDetail.objects.all()
+    serializer_class = UserSerializer
     lookup_field = 'user_name'
 
 
-class UserUpdate(UpdateAPIView):
-    queryset = models.User.objects.all()
-    serializer_class = serializers.UserSerializer
-    lookup_field = 'user_name'
-
-    # def update(self, instance, validated_data):
-    #     instance.user_name = validated_data.get('user_name', instance.user_name)
-    #     print("hrllo")
-    #     instance.dateOfBirth = validated_data.get('dateOfBirth', instance.dateOfBirth)
-    #     print(validated_data.get('dateOfBirth'))
-    #     instance.save()
-    #     # return instance
-    #     serializer = self.get_serializer(instance)
-    #     serializer.is_valid(raise_exception=True)
-    #     self.perform_update(serializer)
-    #     return Response(serializer.data)
-    def update(self, request, *args, **kwargs):
-        serializer_data = request.data
-        serializer = self.serializer_class(request.user, data=serializer_data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+        content = data['user_name']
+        if data['dateOfBirth'] == date.today().strftime("%Y-%m-%d"):
+            html = ("Hello, %s! Happy birthday!" % content)
+            return Response(html, status=status.HTTP_200_OK)
+        else:
+        #     bday = data['dateOfBirth']
+        #     print(type(bday))
+        #     # 1989 - 05 - 02
+        #     bd_ar = bday.split('-')
+        #     print(bd_ar[0])
+        #
+        #     to_ar = date.today().strftime("%Y-%m-%d")
+        #
+        #     d0 = date(2017, int(bd_ar[2]), int(bd_ar[1]))
+        #     d1 = date(2017, int(to_ar[2]), int(to_ar[1]))
+        #     delta = d1 - d0
+        #     print(delta.days)
+        #
+        #     web = ("Hello, {} Your birthday is in {} days(s)".format(content, delta))
+            dd = int(data['dateOfBirth'][8:])
+            mm = int(data['dateOfBirth'][5:7])
+            yy = int(data['dateOfBirth'][2:4])
+            birthday = datetime(2000+yy, mm, dd)
+            print(birthday)
+            def calculate_dates(original_date, now):
+                delta1 = datetime(now.year, original_date.month, original_date.day)
+                delta2 = datetime(now.year + 1, original_date.month, original_date.day)
+                days = (max(delta1, delta2) - now).days
+                return days
+            bd = birthday
+            now = datetime.now()
+            c = calculate_dates(bd, now)
+            html = ("Hello, your birthday is in %s days!" % c)
+        return Response(html, status=status.HTTP_204_NO_CONTENT)
 
 

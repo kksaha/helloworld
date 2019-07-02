@@ -1,21 +1,15 @@
 from rest_framework import serializers
+from datetime import date
 from . import models
-
 
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
+        model = models.UserDetail
+        dateOfBirth = serializers.DateField()
         fields = ('user_name', 'dateOfBirth')
-        model = models.User
 
-    def update(self, instance, validated_data):
-        instance.user_name = validated_data.get('user_name', instance.user_name)
-        print("hrllo")
-        instance.dateOfBirth = validated_data.get('dateOfBirth', instance.dateOfBirth)
-        print(validated_data.get('dateOfBirth'))
-        instance.save()
-        # return instance
-        serializer = self.get_serializer(instance)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data)
+    def validate(self, dateOfBirth):
+        if dateOfBirth['dateOfBirth'] > date.today():
+            raise serializers.ValidationError("YYYY-MM-DD must be date before today date!")
+        return dateOfBirth
