@@ -10,6 +10,6 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('user_name', 'dateOfBirth')
 
     def validate(self, dateOfBirth):
-        if dateOfBirth['dateOfBirth'] > date.today():
+        if dateOfBirth['dateOfBirth'] >= date.today():
             raise serializers.ValidationError("YYYY-MM-DD must be date before today date!")
         return dateOfBirth

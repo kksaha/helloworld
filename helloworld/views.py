@@ -5,27 +5,26 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-
-from django.http import HttpResponse
+#from django.http import HttpResponse
 
 from . models import UserDetail
 from . serializers import UserSerializer
-
 
 class UserView(generics.RetrieveUpdateAPIView):
     queryset = UserDetail.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'user_name'
 
-
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         data = serializer.data
         content = data['user_name']
-        if data['dateOfBirth'] == date.today().strftime("%Y-%m-%d"):
+        print(data['dateOfBirth'][5:])
+        print(date.today().strftime("%m-%d"))
+        if data['dateOfBirth'][5:] == date.today().strftime("%m-%d"):
             html = ("Hello, %s! Happy birthday!" % content)
-            return Response(html, status=status.HTTP_200_OK)
+            return Response({'message': html}, status=status.HTTP_204_NO_CONTENT)
         else:
         #     bday = data['dateOfBirth']
         #     print(type(bday))
@@ -45,16 +44,18 @@ class UserView(generics.RetrieveUpdateAPIView):
             mm = int(data['dateOfBirth'][5:7])
             yy = int(data['dateOfBirth'][2:4])
             birthday = datetime(2000+yy, mm, dd)
-            print(birthday)
             def calculate_dates(original_date, now):
                 delta1 = datetime(now.year, original_date.month, original_date.day)
                 delta2 = datetime(now.year + 1, original_date.month, original_date.day)
                 days = (max(delta1, delta2) - now).days
+                if days > 365:
+                    days=days-365
+                    return days
+                else:
+                    days=days
                 return days
             bd = birthday
             now = datetime.now()
             c = calculate_dates(bd, now)
-            html = ("Hello, your birthday is in %s days!" % c)
-        return Response(html, status=status.HTTP_204_NO_CONTENT)
-
-
+            html = ("Hello, %s! Your birthday is in %s days!" % (content, c))
+        return Response({'message':html}, status=status.HTTP_200_OK)
